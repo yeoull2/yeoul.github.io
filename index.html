@@ -1,0 +1,136 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>문의하기 | Fever Online</title>
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; font-family: Arial, sans-serif; }
+        body { display: flex; flex-direction: column; align-items: center; padding: 20px; background-color: #f8f9fa; }
+        .container { width: 400px; padding: 20px; background: white; box-shadow: 0px 4px 10px rgba(0, 0, 0, 0.1); border-radius: 8px; margin-bottom: 20px; }
+        h2 { text-align: center; margin-bottom: 20px; }
+        label { font-weight: bold; display: block; margin-top: 10px; }
+        select, input, textarea, button { width: 100%; padding: 10px; margin-top: 5px; border: 1px solid #ddd; border-radius: 5px; }
+        textarea { height: 100px; resize: none; }
+        button { background-color: #007bff; color: white; border: none; cursor: pointer; font-size: 16px; margin-top: 15px; }
+        button:hover { background-color: #0056b3; }
+        .inquiry-list { width: 400px; padding: 10px; background: white; box-shadow: 0px 4px 10px rgba(0, 0, 0, 0.1); border-radius: 8px; }
+        .inquiry-item { padding: 10px; border-bottom: 1px solid #ddd; }
+        .inquiry-item:last-child { border-bottom: none; }
+    </style>
+</head>
+<body>
+
+    <div class="container">
+        <h2>문의하기</h2>
+        <form id="inquiryForm">
+            <label>문의 유형</label>
+            <select id="category" required>
+                <option value="건의">건의</option>
+                <option value="민원">민원</option>
+                <option value="질문">질문</option>
+                <option value="기타">기타</option>
+                <option value="플레이어 신고">플레이어 신고</option>
+            </select>
+
+            <label>이름</label>
+            <input type="text" id="name" required>
+
+            <label>문의 내용</label>
+            <textarea id="message" required></textarea>
+
+            <button type="submit">문의 등록</button>
+        </form>
+    </div>
+
+    <div class="inquiry-list">
+        <h3>문의 목록</h3>
+        <div id="inquiryList"></div>
+    </div>
+
+    <!-- ✅ JavaScript 코드 -->
+    <script>
+        document.addEventListener("DOMContentLoaded", function() {
+            loadInquiries();
+
+            document.getElementById("inquiryForm").addEventListener("submit", function(event) {
+                event.preventDefault();
+                const category = document.getElementById("category").value;
+                const name = document.getElementById("name").value;
+                const message = document.getElementById("message").value;
+                
+                if (name.trim() === "" || message.trim() === "") {
+                    alert("모든 항목을 입력해주세요.");
+                    return;
+                }
+
+                const inquiry = { category, name, message, date: new Date().toLocaleString() };
+                saveInquiry(inquiry);
+                document.getElementById("inquiryForm").reset();
+            });
+        });
+
+        function saveInquiry(inquiry) {
+            let inquiries = JSON.parse(localStorage.getItem("inquiries")) || [];
+            inquiries.unshift(inquiry);  // 최신 문의가 위에 오도록 추가
+            localStorage.setItem("inquiries", JSON.stringify(inquiries));
+            loadInquiries();
+        }
+
+        function loadInquiries() {
+            const inquiryList = document.getElementById("inquiryList");
+            inquiryList.innerHTML = "";
+            let inquiries = JSON.parse(localStorage.getItem("inquiries")) || [];
+            
+            inquiries.forEach((inq, index) => {
+                let div = document.createElement("div");
+                div.classList.add("inquiry-item");
+                div.innerHTML = `<strong>[${inq.category}] ${inq.name}</strong><br>${inq.message}<br><small>${inq.date}</small>`;
+                inquiryList.appendChild(div);
+            });
+        }
+    </script>
+
+    <!-- ✅ Channel.io 실시간 채팅 추가 -->
+    <script>
+      (function() {
+        var w = window;
+        if (w.ChannelIO) {
+          return w.console.error("ChannelIO script included twice.");
+        }
+        var ch = function() {
+          ch.c(arguments);
+        };
+        ch.q = [];
+        ch.c = function(args) {
+          ch.q.push(args);
+        };
+        w.ChannelIO = ch;
+        function l() {
+          if (w.ChannelIOInitialized) {
+            return;
+          }
+          w.ChannelIOInitialized = true;
+          var s = document.createElement("script");
+          s.type = "text/javascript";
+          s.async = true;
+          s.src = "https://cdn.channel.io/plugin/latest/channel-web.js";
+          var x = document.getElementsByTagName("script")[0];
+          if (x.parentNode) {
+            x.parentNode.insertBefore(s, x);
+          }
+        }
+        if (document.readyState === "complete") {
+          l();
+        } else {
+          w.addEventListener("DOMContentLoaded", l);
+          w.addEventListener("load", l);
+        }
+      })();
+      ChannelIO('boot', {
+        "pluginKey": "여기에_플러그인_키_입력"
+      });
+    </script>
+
+</body>
+</html>
